@@ -7,7 +7,7 @@ COPY ./requirements.txt /inference-api/requirements.txt
 RUN pip install -r /inference-api/requirements.txt
 
 COPY ./models.zip /inference-api/
-RUN unzip /inference-api/models.zip --directory /inference-api
+RUN unzip /inference-api/models.zip
 RUN rm /inference-api/models.zip
 
 COPY ./application/* /inference-api/application/
