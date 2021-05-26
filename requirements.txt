@@ -1,10 +1,12 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
+torch==1.8.0+cu111
+torchvision==0.9.0+cu111
 cherrypy==18.1.1
 pyyaml~=5.4.1
 psutil~=5.8.0
 timm~=0.4.5
 Pillow~=8.2.0
-torch~=1.8.1
-torchvision~=0.9.1
 numpy~=1.20.2
 detecto~=1.2.1
 opencv-python~=4.5.2.52
