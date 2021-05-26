@@ -19,6 +19,8 @@ coco_labels = {
     'road': 148
 }
 
+allowed_labels = coco_labels.keys()
+
 
 def make_thumbnail(image_arr, size):
     image = Image.fromarray(image_arr)
@@ -29,7 +31,7 @@ def make_thumbnail(image_arr, size):
 def generate_trimap(image_arr, models_path=None):
     saliency_map = get_saliency_map(image_arr, models_path)
     saliency_map[saliency_map > 0] = 255
-    trimap = transform_saliency_to_trimap(saliency_map, 7, 3)
+    trimap = transform_saliency_to_trimap(saliency_map, 0, 3)
     return trimap
 
 
@@ -38,16 +40,21 @@ def trimap_to_segmentation(trimap, label):
     return segmentation
 
 
-def make_segmentation_square(segmentation, size):
-    height, width = segmentation.shape
+def make_image_square(image, size, mode='L'):
+    if mode == 'L':
+        height, width = image.shape
+        fill = coco_labels['road']
+    else:
+        height, width = image.shape[0], image.shape[1]
+        fill = 'white'
     width_diff = (size[0] - width)
     left = int(width_diff / 2)
     right = width_diff - left
     height_diff = (size[1] - height)
     top = int(height_diff / 2)
     bottom = height_diff - top
-    image = Image.fromarray(segmentation.astype(np.uint8)).convert('L')
-    img_with_border = ImageOps.expand(image, border=(left, top, right, bottom), fill=coco_labels['road'])
+    pil_image = Image.fromarray(image.astype(np.uint8)).convert(mode)
+    img_with_border = ImageOps.expand(pil_image, border=(left, top, right, bottom), fill=fill)
     return np.array(img_with_border)
 
 
@@ -65,6 +72,16 @@ def transform_saliency_to_trimap(mask, dilation_size, erosion_size):
     remake[eroded == 255] = 255
 
     return remake
+
+
+def swap_bg(img_swap, alpha_swap):
+    green_bg = np.full_like(img_swap, 255).astype(np.float32)
+
+    alpha_swap = alpha_swap[:, :, np.newaxis]
+    result = alpha_swap * img_swap.astype(np.float32) + (1 - alpha_swap) * green_bg
+    result = np.clip(result, 0, 255).astype(np.uint8)
+
+    return result
 
 
 def norm_prediction(d):

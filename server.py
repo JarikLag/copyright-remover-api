@@ -6,6 +6,7 @@ from io import BytesIO
 import cherrypy
 from cherrypy import log
 import yaml
+from PIL import Image
 import psutil
 import base64
 
@@ -17,11 +18,11 @@ config = yaml.safe_load(open("config.yml"))
 
 
 def process_copyrighted_request(body):
-    image_raw = body.get('image')
+    image = read_image(body.get('image'))
     start = time.time()
 
     try:
-        label = manager.classify_image(image_raw)
+        label = manager.classify_image(image)
         result = {
             'label': label
         }
@@ -36,19 +37,35 @@ def process_copyrighted_request(body):
     return json.dumps(result)
 
 
-def process_modify_request(body):
-    image_raw = body.get('image')
-    label = body.get('label')
-
+def process_cut_object_request(body):
+    image = read_image(body.get('image'))
     start = time.time()
 
     try:
-        image = manager.modify_image(image_raw, label)
-        buffered = BytesIO()
-        image.save(buffered, format="JPEG")
-        encoded = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        cutout = write_image(manager.cut_object(image))
         result = {
-            'image': encoded
+            'image': cutout
+        }
+    except Exception as e:
+        result = {
+            'error': str(e)
+        }
+
+    time_spent = time.time() - start
+    log("Completed api call. Time spent {0:.3f} s".format(time_spent))
+
+    return json.dumps(result)
+
+
+def process_modify_request(body):
+    image = read_image(body.get('image'))
+    start = time.time()
+
+    try:
+        modified_image = write_image(manager.modify_image(image))
+
+        result = {
+            'image': modified_image
         }
     except Exception as e:
         result = {
@@ -87,6 +104,25 @@ class ApiServerController(object):
         raw = cherrypy.request.body.read(int(cl))
         body = json.loads(raw)
         return process_modify_request(body).encode("utf-8")
+
+    @cherrypy.expose('/cut-object')
+    def cut_object(self):
+        cl = cherrypy.request.headers['Content-Length']
+        raw = cherrypy.request.body.read(int(cl))
+        body = json.loads(raw)
+        return process_cut_object_request(body).encode("utf-8")
+
+
+def read_image(image_raw):
+    return Image\
+        .open(BytesIO(base64.b64decode(image_raw)))\
+        .convert('RGB')
+
+
+def write_image(image):
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
 
 if __name__ == '__main__':

@@ -6,6 +6,13 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 
+labels = {
+    0: 'author',
+    1: 'author_unmodifiable',
+    2: 'non_author'
+}
+
+
 def classify(image, models_path=None):
     size = 224, 224
 
@@ -18,7 +25,7 @@ def classify(image, models_path=None):
 
     path = 'models' if models_path is None else models_path
 
-    model = timm.create_model('resnest14d', pretrained=False).to(device)
+    model = timm.create_model('resnest14d', pretrained=False, num_classes=3).to(device)
     checkpoint = torch.load(f'{path}/classifier.pth')
     model.load_state_dict(checkpoint)
 
@@ -29,4 +36,4 @@ def classify(image, models_path=None):
         outputs = model(image).cpu()
         _, prediction = torch.max(outputs.data, 1)
         prediction = prediction.squeeze().item()
-        return prediction
+        return labels[prediction]

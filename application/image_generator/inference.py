@@ -27,7 +27,7 @@ def generate_image(image, segmentation):
         'image': image_tensor
     }
 
-    generated = model(data_i, mode='inference').squeeze()
+    generated = model(data_i, mode='inference')[0]
     image_np = util.tensor2im(generated)
 
     return image_np

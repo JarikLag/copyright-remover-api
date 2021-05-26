@@ -5,7 +5,7 @@ import application.image_enhancer.RRDBNet_arch as arch
 
 def enhance(image, models_path=None):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    models_path = 'models' if models_path is None else models_path
+    models_path = '../models' if models_path is None else models_path
 
     model = arch.RRDBNet(3, 3, 64, 23, gc=32).to(device)
     checkpoint = torch.load(f'{models_path}/esrgan.pth')
