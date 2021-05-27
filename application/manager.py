@@ -1,4 +1,5 @@
 from PIL import Image
+import numpy as np
 
 import application.classifier.core as classifier
 import application.detector.core as detector
@@ -31,6 +32,8 @@ def modify_image(image, models_path=None):
     if image is None:
         raise ValueError(f'Object not found on image. Allowed classes: {transformer.allowed_labels}')
 
+    result_size = np.min(np.max(image.shape[:2]), 1024)
+
     image = transformer.make_thumbnail(image, size)
     image = transformer.make_image_square(image, size, 'RGB')
 
@@ -46,7 +49,10 @@ def modify_image(image, models_path=None):
 
     enhanced = enhancer.enhance(generated, models_path)
 
-    return Image.fromarray(enhanced).convert('RGB')
+    result = Image.fromarray(enhanced).convert('RGB')
+    result.thumbnail((result_size, result_size), Image.ANTIALIAS)
+
+    return result
 
 
 if __name__ == '__main__':
