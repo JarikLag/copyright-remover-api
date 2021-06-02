@@ -58,7 +58,7 @@ def action(load_model_path=None):
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True, num_workers=0)
     valid_loader = DataLoader(dataset=valid_data, batch_size=batch_size, shuffle=False, num_workers=0)
 
-    # model = timm.create_model('resnest14d', pretrained=False).to(device)
+    # model = timm.create_model('resnest14d', pretrained=False, num_classes=3).to(device)
     model = timm.create_model('cspdarknet53', pretrained=False, num_classes=3).to(device)
     # model = timm.create_model('efficientnet_b1_pruned', pretrained=False, num_classes=3).to(device)
     criterion = nn.CrossEntropyLoss()
