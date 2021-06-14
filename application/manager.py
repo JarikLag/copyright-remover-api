@@ -26,7 +26,7 @@ def cut_object(image, models_path=None):
 
 
 def modify_image(image, models_path=None):
-    size = 256, 256
+    size = 512, 512
 
     image, label = detector.detect_and_crop_specified_labels(image, transformer.allowed_labels)
     if image is None:
